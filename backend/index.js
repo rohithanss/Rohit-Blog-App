@@ -37,6 +37,7 @@ app.use(
   })
 );
 app.use(express.json());
+
 app.use(
   cors({ origin: "https://rohit-blog-app.netlify.app/", credentials: true })
 );
