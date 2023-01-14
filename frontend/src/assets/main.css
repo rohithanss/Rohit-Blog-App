@@ -1,0 +1,16 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family);
+}
+
+h1 {
+  text-align: center;
+  color: gray;
+  color: var(--primary-color);
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
