@@ -29,7 +29,7 @@ passport.use(
     {
       clientID: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:7010/auth/google/callback",
+      callbackURL: "https://rohit-blog-app.onrender.com/auth/google/callback",
     },
     async function (accessToken, refreshToken, profile, cb) {
       UserModel.findOrCreate(
@@ -67,14 +67,16 @@ authRouter.get(
 
 authRouter.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "http:localhost:7010/" }),
+  passport.authenticate("google", {
+    failureRedirect: "https://rohit-blog-app.netlify.app/",
+  }),
   function (req, res) {
     // Successful authentication, redirect home.
     // console.log(req, res);
     // let userId = req.session.passport.user._id.toString();
     let { _id, role } = req.session.passport.user;
     generateToken(res, _id, role);
-    res.redirect("http://localhost:5173/");
+    res.redirect("https://rohit-blog-app.netlify.app/");
   }
 );
 
@@ -116,7 +118,7 @@ authRouter.get("/github", async (req, res) => {
             { name: userDetail.name, email: userDetail.email },
             function (err, docs) {
               generateToken(res, docs._id, docs.role);
-              res.redirect("http://localhost:5173/");
+              res.redirect("https://rohit-blog-app.netlify.app/");
             }
           );
         }
