@@ -60,7 +60,7 @@ import "primevue/resources/themes/md-dark-deeppurple/theme.css";
 // import "primevue/resources/themes/rhea/theme.css";
 import "primevue/resources/primevue.min.css"; //core css
 import "primeicons/primeicons.css"; //icons
-app.provide("backendURL", "http://localhost:7010");
+app.provide("backendURL", "https://rohit-blog-app.onrender.com");
 app.use(ConfirmationService);
 app.use(PrimeVue);
 app.use(ToastService);
