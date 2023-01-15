@@ -70,18 +70,19 @@ app.use(
 // app.options("*", cors(corsOptionsDelegate));
 
 app.use(cookieParser());
-// app.enable("trust proxy");
 
 app.get("/", (req, res) => {
   res.send("todo API");
 });
 
 app.use("/user", userRouter);
+
 app.use("/admin", adminRouter);
 
 app.use("/getfreshtoken", getfreshtokenRouter);
 
 app.use("/comments", commentRouter);
+
 app.use("/likes", likeRouter);
 
 app.use("/blogs", blogRouter);
@@ -158,7 +159,94 @@ io.on("connection", (socket) => {
       }
     } else {
       cb({
-        msg: "failed to posting comment try again later",
+        msg: "failed to post comment try again later",
+        status: "fail",
+      });
+    }
+  });
+
+  socket.on("editComment", async (blogId, comment, userId, commentId, cb) => {
+    if (
+      userId != "not_logged_in" &&
+      userId != undefined &&
+      commentId != undefined
+    ) {
+      try {
+        let updatedComment = await CommentModel.findOneAndUpdate(
+          { _id: commentId, userId },
+          { comment }
+        );
+        if (updatedComment == null) {
+          return cb({ msg: "comment can be not updated", status: "fail" });
+        } else {
+          commentId = mongoose.Types.ObjectId(commentId);
+          let editedComment = await CommentModel.aggregate()
+            .match({ _id: commentId })
+            .lookup({
+              from: "users",
+              localField: "userId",
+              foreignField: "_id",
+              as: "user",
+            })
+            .project({
+              userId: { $first: "$user._id" },
+              userName: { $first: "$user.name" },
+              comment: 1,
+            });
+          io.to(blogId).emit("editedComment", {
+            data: editedComment[0],
+            status: "success",
+          });
+          cb({ msg: "comment edited successfully", status: "success" });
+        }
+      } catch (err) {
+        cb({
+          msg: "failed to edit comment try again later",
+          status: "fail",
+        });
+      }
+    } else {
+      cb({
+        msg: "failed to edit comment try again later",
+        status: "fail",
+      });
+    }
+  });
+
+  socket.on("deleteComment", async (blogId, userId, commentId, cb) => {
+    if (
+      userId != "not_logged_in" &&
+      userId != undefined &&
+      commentId != undefined
+    ) {
+      try {
+        let deletedComment = await CommentModel.findOneAndDelete({
+          _id: commentId,
+          userId,
+        });
+        if (deletedComment == null) {
+          cb({ msg: "comment can be not deleted", status: "fail" });
+        } else {
+          await BlogModel.findByIdAndUpdate(
+            { _id: blogId },
+            { $inc: { comments: -1 } }
+          );
+          io.to(blogId).emit("deletedComment", {
+            data: commentId,
+            status: "success",
+          });
+          cb({ msg: "comment deleted successfully", status: "success" });
+        }
+      } catch (err) {
+        // console.log(err);
+        cb({
+          msg: "failed to delete comment try again later",
+          status: "fail",
+        });
+      }
+    } else {
+      cb({
+        msg: "failed to delete comment try again later",
         status: "fail",
       });
     }

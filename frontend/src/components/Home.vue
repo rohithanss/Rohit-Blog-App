@@ -44,39 +44,31 @@ const commentOptions = ref([
     label: "Delete",
     icon: "pi pi-trash",
     command: async () => {
-      try {
-        let res = await axios.delete(`${url}/comments/${commentId.value.id}`, {
-          headers: {
-            authorization: `bearer ${localStorage.getItem("token")}`,
-          },
-          withCredentials: true,
-        });
-
-        res = await res.data;
-
-        if (res.status == "success") {
-          toast.add({
-            severity: "success",
-            summary: "Comment deleted",
-            detail: "Comment deleted Successfully",
-            life: 3000,
-          });
-        } else {
-          toast.add({
-            severity: "error",
-            summary: "Comment not deleted",
-            detail: "Something went wrong while deleting the comment",
-            life: 3000,
-          });
+      socket.emit(
+        "deleteComment",
+        blog.value._id,
+        props.userId,
+        commentId.value.id,
+        (response) => {
+          if (response.status == "success") {
+            toast.add({
+              severity: "success",
+              summary: "Delete Comment",
+              detail: "Your comment deleted Successfully",
+              life: 3000,
+            });
+          } else {
+            toast.add({
+              severity: "fail",
+              summary: "Delete Comment",
+              detail:
+                "Something went wrong while deleting the comment, try again",
+              life: 3000,
+            });
+          }
         }
-      } catch (err) {
-        toast.add({
-          severity: "error",
-          summary: "Comment not deleted",
-          detail: "Something went wrong while deleting the comment",
-          life: 3000,
-        });
-      }
+      );
+
       commentId.value = {};
     },
   },
@@ -242,11 +234,58 @@ async function commentBlog(ex) {
     }
   });
   commentBox.value = true;
+
+  socket.on("deletedComment", (comment) => {
+    let idx;
+    for (let i = 0; i < allComments.value.length; i++) {
+      let el = allComments.value[i];
+      if (el._id == comment.data) {
+        idx = i;
+        break;
+      }
+    }
+    allComments.value.splice(idx, 1);
+  });
+
+  socket.on("editedComment", (comment) => {
+    let idx;
+    for (let i = 0; i < allComments.value.length; i++) {
+      let el = allComments.value[i];
+      if (el._id == comment.data._id) {
+        idx = i;
+        break;
+      }
+    }
+    allComments.value[idx].comment = comment.data.comment;
+  });
 }
 
 async function postComment() {
   if (commentId.value?.id) {
-    commentValue.value = "";
+    socket.emit(
+      "editComment",
+      blog.value._id,
+      commentValue.value,
+      props.userId,
+      commentId.value.id,
+      (res) => {
+        if (res.status == "success") {
+          toast.add({
+            severity: "success",
+            summary: "Edit Comment",
+            detail: "Your comment Edited Successfully",
+            life: 3000,
+          });
+        } else {
+          toast.add({
+            severity: "fail",
+            summary: "Edit Comment",
+            detail: "Something went wrong while editing comment, try again",
+            life: 3000,
+          });
+        }
+      }
+    );
     commentId.value = {};
   } else {
     if (props.userId != "not_logged_in") {
