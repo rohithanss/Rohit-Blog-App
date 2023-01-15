@@ -94,7 +94,6 @@ const blogs = computed(async () => {
       headers: {
         authorization: `bearer ${localStorage.getItem("token")}`,
       },
-      withCredentials: true,
     });
     res = res.data;
     if (res.status == "success") {
