@@ -52,6 +52,8 @@ const corsOptionsDelegate = function (req, callback) {
   callback(null, corsOptions); // callback expects two parameters: error and options
 };
 
+app.use("/auth", authRouter);
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -76,8 +78,6 @@ app.get("/", (req, res) => {
 
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);
-
-app.use("/auth", authRouter);
 
 app.use("/getfreshtoken", getfreshtokenRouter);
 
